@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基于Layui框架布局，二次开发菜单导航</title>
+    <link rel="stylesheet" href="./layui-v2.6.8/layui/css/layui.css">
+    <style>
+        .layui-layout-admin .layui-header {
+            margin-left: 378px;
+            background-color: unset;
+        }
+
+        .layui-layout-admin .layui-header .layui-nav {
+            background-color: #393D49;
+        }
+
+        .layui-layout-admin .layui-side {
+            top: 0;
+            width: 378px;
+        }
+
+        .layui-header .layui-nav {
+            padding: 0 10px;
+        }
+
+        .layui-layout-admin .layui-side {
+            overflow-x: unset;
+        }
+
+        .layui-tab {
+            margin: 0 0 0 378px;
+        }
+
+        .layui-tab-title {
+            width: calc(100% - 170px);
+        }
+
+        .layui-nav {
+            padding: 0 10px;
+        }
+
+        .side-menu .layui-nav {
+            padding: 0;
+        }
+
+        .layui-nav .layui-nav-item {
+            line-height: 40px;
+        }
+
+        .layui-nav-child {
+            top: 50px;
+        }
+
+        /* 左侧菜单导航 */
+
+        .side-layout {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .side-left {
+            width: 200px;
+        }
+
+        .side-right {
+            width: 178px;
+            background-color: #fff;
+            color: #333;
+            box-shadow: inset -1px 0px 0px 0px #EBEEF5;
+        }
+
+        /* 左侧菜单导航 */
+
+        /* 左侧LOGO和文字 */
+        .side-logo {
+            width: 200px;
+            height: 100px;
+            text-align: center;
+        }
+
+        .logo-img {
+            padding-top: 15px;
+        }
+
+        .logo-img img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+        }
+
+        .logo-text {
+            padding-bottom: 15px;
+            height: 20px;
+            line-height: 20px;
+        }
+
+        /* 左侧LOGO和文字 */
+
+        .side-menu {
+            height: calc(100vh - 127px);
+            overflow-x: hidden;
+            overflow-y: scroll;
+        }
+
+        .side-shrink {
+            position: fixed;
+            left: 170px;
+            bottom: 5px;
+            cursor: pointer;
+        }
+
+        .nav-item-a {
+            padding: 5px 10px 5px;
+        }
+
+        /* 二级菜单导航 */
+        #menu-son {
+            margin: 8px 10px;
+        }
+
+        #menu-son dd {
+            width: 158px;
+            height: 38px;
+            line-height: 38px;
+            font-family: PingFangSC-Regular, PingFang SC;
+            font-weight: 400;
+            color: #303133;
+        }
+
+        #menu-son .current-menu {
+            display: inline-block;
+            width: 100%;
+            height: 100%;
+            background-color: #0296886b;
+            border-radius: 5px;
+            color: #00968899;
+        }
+
+        /* 二级菜单导航 */
+    </style>
+</head>
+
+<body>
+    <div class="layui-layout layui-layout-admin">
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item">
+                <a href="javascript:;">
+                    <img src="https://upload-images.jianshu.io/upload_images/5809200-a99419bb94924e6d.jpg"
+                        class="layui-nav-img">
+                    tester
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="">Your Profile</a></dd>
+                    <dd><a href="">Settings</a></dd>
+                    <dd><a href="">Sign out</a></dd>
+                </dl>
+            </li>
+        </ul>
+
+        <div class="layui-side side-layout">
+            <div class="side-left layui-bg-black">
+                <!-- 网站LOGO -->
+                <div class="side-logo">
+                    <div class="logo-img">
+                        <img src="https://fuss10.elemecdn.com/8/27/f01c15bb73e1ef3793e64e6b7bbccjpeg.jpeg" />
+                    </div>
+                    <div class="logo-text">
+                        最有名
+                    </div>
+                </div>
+                <!-- 菜单导航 -->
+                <div class="side-menu">
+                    <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+                    <ul class="layui-nav layui-nav-tree" id="menu-parent">
+                    </ul>
+                </div>
+                <!-- 菜单缩放 -->
+                <div class="side-shrink">
+                    <i id="shrink-right" class="layui-icon layui-icon-shrink-right"></i>
+                    <i id="shrink-left" class="layui-icon layui-icon-spread-left"></i>
+                </div>
+            </div>
+            <div class="side-right">
+                <dl id="menu-son"></dl>
+            </div>
+        </div>
+
+        <!--tab标签-->
+        <div class="layui-tab" lay-filter="demo" lay-allowclose="true">
+            <ul class="layui-tab-title"></ul>
+            <div class="layui-tab-content"></div>
+        </div>
+
+        <div class="layui-footer" style="text-align: center;">
+            <!-- 底部固定区域 -->
+            Copyright © 最有名科技有限公司版权所有
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-2.2.4.js"></script>
+    <script src="./layui-v2.6.8/layui/layui.js"></script>
+    <script>
+        //菜单导航数据集
+        var menuDatas = [{
+            "Id": "1",
+            "Name": "布局管理",
+            "Children": [{
+                "PId": "1",
+                "Id": "11",
+                "Name": "栅格",
+                "Url": "https://layui.itze.cn/demo/grid.html"
+            }, {
+                "PId": "1",
+                "Id": "12",
+                "Name": "框架",
+                "Url": "https://layui.itze.cn/demo/admin.html"
+            }]
+        }, {
+            "Id": "2",
+            "Name": "组件管理",
+            "Children": [{
+                "PId": "2",
+                "Id": "21",
+                "Name": "分页",
+                "Url": "https://layui.itze.cn/demo/laypage.html"
+            }, {
+                "PId": "2",
+                "Id": "22",
+                "Name": "下拉菜单",
+                "Url": "https://layui.itze.cn/demo/dropdown.html"
+            }, {
+                "PId": "2",
+                "Id": "2-3",
+                "Name": "弹出层",
+                "Url": "https://layui.itze.cn/demo/layer.html"
+            }, {
+                "PId": "2",
+                "Id": "2-4",
+                "Name": "数据表格",
+                "Url": "https://layui.itze.cn/demo/table.html"
+            }]
+        }, {
+            "Id": "3",
+            "Name": "元素管理",
+            "Children": [{
+                "PId": "3",
+                "Id": "3-1",
+                "Name": "按钮",
+                "Url": "https://layui.itze.cn/demo/button.html"
+            }, {
+                "PId": "3",
+                "Id": "3-2",
+                "Name": "表单",
+                "Url": "https://layui.itze.cn/demo/form.html"
+            }, {
+                "PId": "3",
+                "Id": "3-3",
+                "Name": "选项卡",
+                "Url": "https://layui.itze.cn/demo/tab.html"
+            }, {
+                "PId": "3",
+                "Id": "3-4",
+                "Name": "进度条",
+                "Url": "https://layui.itze.cn/demo/progress.html"
+            }, {
+                "PId": "3",
+                "Id": "3-5",
+                "Name": "面板",
+                "Url": "https://layui.itze.cn/demo/panel.html"
+            }, {
+                "PId": "3",
+                "Id": "3-6",
+                "Name": "徽章",
+                "Url": "https://layui.itze.cn/demo/badge.html"
+            }, {
+                "PId": "3",
+                "Id": "3-7",
+                "Name": "时间线",
+                "Url": "https://layui.itze.cn/demo/timeline.html"
+            }, {
+                "PId": "3",
+                "Id": "3-8",
+                "Name": "静态表格",
+                "Url": "https://layui.itze.cn/demo/table-element.html"
+            }, {
+                "PId": "3",
+                "Id": "3-9",
+                "Name": "动画",
+                "Url": "https://layui.itze.cn/demo/anim.html"
+            }]
+        }];
+    </script>
+    <script>
+        var isShow = false;//是否显示二级菜单导航
+        var isShrink = true;//是否收缩
+        var leftShrinkWidth = 60;
+        var leftWidth = 200;
+        var rightWidth = 178;
+
+        $('#shrink-left').hide();
+        //渲染一级菜单导航
+        getParentMenu(menuDatas);
+        //初始化不显示二级菜单导航
+        setSideWidth(false, false);
+
+        //动态渲染一级菜单导航数据
+        function getParentMenu(datas) {
+            var _parentMenuHtml = "";
+            for (var i = 0; i < datas.length; i++) {
+                _parentMenuHtml += '<li class="layui-nav-item" id="' + datas[i].Id + '"><a href="javascript:;" class="nav-item-a"><i class="layui-icon layui-icon-set-fill"></i><span style="margin-left:10px;">' + datas[i].Name + '</span></a></li>';
+            }
+            $("#menu-parent").html(_parentMenuHtml);
+        }
+
+        //设置左侧菜单导航宽度
+        function setSideWidth(isShrink, isShow) {
+            var lw = isShrink ? leftShrinkWidth : leftWidth;
+            var rw = isShow ? rightWidth : 0;
+
+            isShow ? $(".side-right").show() : $(".side-right").hide();
+            $('.layui-layout-admin .layui-side').width(lw + rw);
+            $('.layui-tab').css('margin-left', (lw + rw) + 'px');
+            $('.layui-footer').css('left', (lw + rw) + 'px');
+        }
+
+        //点击渲染对应二级菜单导航
+        $(document).on('click', '.side-menu .layui-nav-item', function () {
+            //$('.side-menu .layui-nav-item').on('click', function (e) {
+            isShow = true;
+            setSideWidth(!isShrink, isShow);
+            var _this = $(this);
+            var clickedId = _this[0].id;
+            var menuChild = menuDatas.filter(function (_data) { return _data.Id == clickedId })[0].Children;
+            var _menuHtml = "";
+            for (var i = 0; i < menuChild.length; i++) {
+                _menuHtml += '<dd><a href="javascript:;" data-id="' + menuChild[i].Id + '" data-title="' + menuChild[i].Name + '" data-url="' + menuChild[i].Url + '" class="site-demo-active" data-type="tabAdd"><span style="padding-left:20px;">' + menuChild[i].Name + '</span></a></dd>';
+            }
+            $("#menu-son").html(_menuHtml);
+        });
+
+        //切换菜单收缩
+        $(document).on('click', '.side-shrink', function () {
+            //$('.side-shrink').click(function () {
+            //选择出所有的span，并判断是不是hidden
+            $('.layui-nav-item span').each(function () {
+                if ($(this).is(':hidden')) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+            if (isShrink) {
+                $('.side-left').width(leftShrinkWidth);
+                $('.side-logo').width(leftShrinkWidth);
+                $('.layui-nav-tree').width(leftShrinkWidth);
+                $('.side-menu .layui-nav .layui-nav-item a').removeClass('nav-item-a');
+                $('#shrink-right').hide();
+                $('#shrink-left').show();
+                $('.side-shrink').css('left', (leftShrinkWidth - 20) / 2);
+                setSideWidth(true, isShow);
+                isShrink = false;
+            } else {
+                $('.side-left').width(leftWidth);
+                $('.side-logo').width(leftWidth);
+                $('.layui-nav-tree').width(leftWidth);
+                $('.side-menu .layui-nav .layui-nav-item a').addClass('nav-item-a');
+                $('#shrink-right').show();
+                $('#shrink-left').hide();
+                $('.side-shrink').css('left', leftWidth - 30);
+                $('.layui-nav-item span').each(function () {
+                    $(this).show();
+                });
+                setSideWidth(false, isShow);
+                isShrink = true;
+            }
+        });       
+    </script>
+    <script>
+        layui.use(['element', 'layer', 'jquery'], function () {
+            var element = layui.element;
+            // var layer = layui.layer;
+            var $ = layui.$;
+            // 配置tab实践在下面无法获取到菜单元素
+            $(document).on('click', '.site-demo-active', function () {
+                //$('.site-demo-active').on('click', function () {
+
+                //移除所有选中的菜单导航
+                $("#menu-son dd a").removeClass("current-menu");
+                //高亮显示当前菜单导航
+                $(this).addClass("current-menu");
+
+                var dataid = $(this);
+                //这时会判断右侧.layui-tab-title属性下的有lay-id属性的li的数目，即已经打开的tab项数目
+                if ($(".layui-tab-title li[lay-id]").length <= 0) {
+                    //如果比零小，则直接打开新的tab项
+                    active.tabAdd(dataid.attr("data-url"), dataid.attr("data-id"), dataid.attr("data-title"));
+                } else {
+                    //否则判断该tab项是否以及存在
+                    var isData = false; //初始化一个标志，为false说明未打开该tab项 为true则说明已有
+                    $.each($(".layui-tab-title li[lay-id]"), function () {
+                        //如果点击左侧菜单栏所传入的id 在右侧tab项中的lay-id属性可以找到，则说明该tab项已经打开
+                        if ($(this).attr("lay-id") == dataid.attr("data-id")) {
+                            isData = true;
+                        }
+                    })
+                    if (isData == false) {
+                        //标志为false 新增一个tab项
+                        active.tabAdd(dataid.attr("data-url"), dataid.attr("data-id"), dataid.attr("data-title"));
+                    }
+                }
+                //最后不管是否新增tab，最后都转到要打开的选项页面上
+                active.tabChange(dataid.attr("data-id"));
+            });
+
+            var active = {
+                //在这里给active绑定几项事件，后面可通过active调用这些事件
+                tabAdd: function (url, id, name) {
+                    //新增一个Tab项 传入三个参数，分别对应其标题，tab页面的地址，还有一个规定的id，是标签中data-id的属性值
+                    //关于tabAdd的方法所传入的参数可看layui的开发文档中基础方法部分
+                    element.tabAdd('demo', {
+                        title: name,
+                        content: '<iframe data-frameid="' + id + '" scrolling="auto" frameborder="0" src="' + url + '" style="width:100%;height:99%;"></iframe>',
+                        id: id //规定好的id
+                    })
+                    FrameWH(); //计算ifram层的大小
+                },
+                tabChange: function (id) {
+                    //切换到指定Tab项
+                    element.tabChange('demo', id); //根据传入的id传入到指定的tab项
+                },
+                tabDelete: function (id) {
+                    element.tabDelete("demo", id);//删除
+                }
+            };
+            function FrameWH() {
+                var wh = $(window).height();
+                var hf = $('.layui-tab-title').height();
+                var fh = $('.layui-footer').height();
+                var h = wh - hf - fh - 1;
+                $("iframe").css("height", h + "px");
+            }
+        });
+    </script>
+</body>
+
+</html>
