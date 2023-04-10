@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>基于Layui框架布局，二次开发菜单导航</title>
     <link rel="stylesheet" href="./layui-v2.6.8/layui/css/layui.css">
+    <link rel="stylesheet" href="./extendIcon/iconfont.css">
     <style>
         .layui-layout-admin .layui-header {
             margin-left: 378px;
@@ -140,6 +141,37 @@
         }
 
         /* 二级菜单导航 */
+
+        /* 鼠标右键选项卡操作 */
+        .rightmenu {
+            width: 140px;
+            padding: 5px 0;
+            font-size: 14px;
+            text-align: left;
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .2);
+            border-radius: 4px;
+        }
+
+        .rightmenu li {
+            font-size: 13px;
+            transition-duration: 0.3s;
+            padding: 3px 20px;
+            font-weight: 400;
+            line-height: 30px;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .rightmenu li:hover {
+            background-color: #eeeeee;
+        }
+
+        .rightmenu li i {
+            margin-right: 10px;
+        }
+
+        /* 鼠标右键选项卡操作 */
     </style>
 </head>
 
@@ -191,6 +223,13 @@
         <!--tab标签-->
         <div class="layui-tab" lay-filter="demo" lay-allowclose="true">
             <ul class="layui-tab-title"></ul>
+            <!-- 鼠标右键选项卡操作 -->
+            <ul class="rightmenu" style="display: none;position: absolute;">
+                <li data-type="refresh">刷新</li>
+                <li data-type="closeOthers">关闭其他</li>
+                <li data-type="closeRight">关闭右侧所有</li>
+                <li data-type="closeAll">关闭所有</li>
+            </ul>
             <div class="layui-tab-content"></div>
         </div>
 
@@ -206,6 +245,7 @@
         //菜单导航数据集
         var menuDatas = [{
             "Id": "1",
+            "Icon": "icon-buju",
             "Name": "布局管理",
             "Children": [{
                 "PId": "1",
@@ -220,6 +260,7 @@
             }]
         }, {
             "Id": "2",
+            "Icon": "icon-zujian",
             "Name": "组件管理",
             "Children": [{
                 "PId": "2",
@@ -244,6 +285,7 @@
             }]
         }, {
             "Id": "3",
+            "Icon": "icon-left-element",
             "Name": "元素管理",
             "Children": [{
                 "PId": "3",
@@ -310,7 +352,7 @@
         function getParentMenu(datas) {
             var _parentMenuHtml = "";
             for (var i = 0; i < datas.length; i++) {
-                _parentMenuHtml += '<li class="layui-nav-item" id="' + datas[i].Id + '"><a href="javascript:;" class="nav-item-a"><i class="layui-icon layui-icon-set-fill"></i><span style="margin-left:10px;">' + datas[i].Name + '</span></a></li>';
+                _parentMenuHtml += '<li class="layui-nav-item" id="' + datas[i].Id + '"><a href="javascript:;" class="nav-item-a"><i class="iconfont ' + datas[i].Icon + '"></i><span style="margin-left:10px;">' + datas[i].Name + '</span></a></li>';
             }
             $("#menu-parent").html(_parentMenuHtml);
         }
@@ -415,6 +457,33 @@
                 active.tabChange(dataid.attr("data-id"));
             });
 
+            $(".rightmenu li").click(function () {
+                //当前的tabId
+                var currentTabId = $(this).attr("data-id");
+                if ($(this).attr("data-type") == "closeOthers") { //关闭其他
+                    var tabtitle = $(".layui-tab-title li");
+                    $.each(tabtitle, function (i) {
+                        if ($(this).attr("lay-id") != currentTabId) {
+                            active.tabDelete($(this).attr("lay-id"))
+                        }
+                    })
+                } else if ($(this).attr("data-type") == "closeAll") { //关闭全部
+                    var tabtitle = $(".layui-tab-title li");
+                    $.each(tabtitle, function (i) {
+                        active.tabDelete($(this).attr("lay-id"))
+                    })
+                } else if ($(this).attr("data-type") == "refresh") { //刷新页面
+                    active.tabRefresh($(this).attr("data-id"));
+                } else if ($(this).attr("data-type") == "closeRight") { //关闭右边所有
+                    //找到当前聚焦的li之后的所有li标签 然后遍历
+                    var tabtitle = $(".layui-tab-title li[lay-id=" + currentTabId + "]~li");
+                    $.each(tabtitle, function (i) {
+                        active.tabDelete($(this).attr("lay-id"))
+                    })
+                }
+                $('.rightmenu').hide();
+            });
+
             var active = {
                 //在这里给active绑定几项事件，后面可通过active调用这些事件
                 tabAdd: function (url, id, name) {
@@ -422,26 +491,68 @@
                     //关于tabAdd的方法所传入的参数可看layui的开发文档中基础方法部分
                     element.tabAdd('demo', {
                         title: name,
-                        content: '<iframe data-frameid="' + id + '" scrolling="auto" frameborder="0" src="' + url + '" style="width:100%;height:99%;"></iframe>',
+                        content: '<iframe id="iframeBox" data-frameid="' + id + '" scrolling="auto" frameborder="0" src="' + url + '" style="width:100%;height:99%;"></iframe>',
                         id: id //规定好的id
-                    })
+                    });
+
+                    //通过鼠标mouseover事件  动态将新增的tab下的li标签绑定鼠标右键功能的菜单   
+                    //下面的id是动态新增Tab的id，一定要传入这个id,避免重复加载mouseover数据
+                    $(".layui-tab-title li[lay-id=" + id + "]").mouseover(function () {
+                        var tabId = $(this).attr("lay-id");
+                        CustomRightClick(tabId); //给tab绑定右击事件
+                    });
                     FrameWH(); //计算ifram层的大小
                 },
                 tabChange: function (id) {
-                    //切换到指定Tab项
                     element.tabChange('demo', id); //根据传入的id传入到指定的tab项
                 },
                 tabDelete: function (id) {
                     element.tabDelete("demo", id);//删除
+                },
+                tabRefresh: function (id) { //刷新页面
+                    $("iframe[data-frameid='" + id + "']").attr("src", $("iframe[data-frameid='" + id + "']").attr("src")) //刷新框架
                 }
             };
-            function FrameWH() {
-                var wh = $(window).height();
-                var hf = $('.layui-tab-title').height();
-                var fh = $('.layui-footer').height();
-                var h = wh - hf - fh - 1;
-                $("iframe").css("height", h + "px");
-            }
+        });
+
+        function FrameWH() {
+            var wh = $(window).height();
+            var hf = $('.layui-tab-title').height();
+            var fh = $('.layui-footer').height();
+            var h = wh - hf - fh - 1;
+            $("iframe").css("height", h + "px");
+        }
+
+        function CustomRightClick(id) {
+            //取消右键  rightmenu属性开始是隐藏的 ，当右击的时候显示，左击的时候隐藏
+            $('.layui-tab-title li').on('contextmenu', function () {
+                return false;
+            })
+            $('.layui-tab-title,.layui-tab-title li').click(function () {
+                $('.rightmenu').hide();
+            });
+            //单击取消右键菜单
+            $('body,#iframeBox').click(function () {
+                $('.rightmenu').hide();
+            });
+            //tab点击右键 
+            $('.layui-tab-title li').on('contextmenu', function (e) {
+                var popupmenu = $(".rightmenu");
+                popupmenu.find("li").attr("data-id", id); //在右键菜单中的标签绑定id属性
+
+                //判断右侧菜单的位置 
+                l = ($(document).width() - e.clientX) < popupmenu.width() ? (e.clientX - popupmenu.width()) : e.clientX;
+                t = ($(document).height() - e.clientY) < popupmenu.height() ? (e.clientY - popupmenu.height()) : e.clientY;
+                popupmenu.css({
+                    left: l,
+                    top: t
+                }).show(); //进行绝对定位
+                return false;
+            });
+        }
+
+        $(window).resize(function () {
+            FrameWH();
         });
     </script>
 </body>

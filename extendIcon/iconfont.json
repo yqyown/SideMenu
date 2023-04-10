@@ -1,0 +1,30 @@
+{
+  "id": "",
+  "name": "",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "3238500",
+      "name": "元素",
+      "font_class": "left-element",
+      "unicode": "e62d",
+      "unicode_decimal": 58925
+    },
+    {
+      "icon_id": "7193681",
+      "name": "组件",
+      "font_class": "zujian",
+      "unicode": "e730",
+      "unicode_decimal": 59184
+    },
+    {
+      "icon_id": "16398956",
+      "name": "布局",
+      "font_class": "buju",
+      "unicode": "e853",
+      "unicode_decimal": 59475
+    }
+  ]
+}
